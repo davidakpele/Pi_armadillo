@@ -1,0 +1,73 @@
+#!/usr/bin/env python
+#-*- coding:utf-8 -*-
+#
+# simple i/o sequencer to make block write values to go to PLC or io block.
+# 
+import math
+import struct
+
+# pin list e.g. [ 2, 6, 4, 8, 7] to output block
+#
+def pin_list_on_to_output( pin_list=[ 2, 6, 4, 8, 7], offset=1, block_out=0 ):
+    pin_list.sort()
+    for pin_no in pin_list:
+        block_out |= int(math.pow(2,(pin_no-offset)))
+    return block_out
+
+def pin_list_off_to_output( pin_list=[ 2, 6, 4, 8, 7], offset=1, block_out=0, bits=0xF ):
+    pin_list.sort()
+    for pin_no in pin_list:
+        block_out &= (not(int(math.pow(2,(pin_no-offset)))) & bits)
+    return block_out
+
+def pin_list_toggle_to_output( pin_list=[ 2, 6, 4, 8, 7], offset=1, block_out=0 ):
+    pin_list.sort()
+    for pin_no in pin_list:
+        block_out ^= int(math.pow(2,(pin_no-offset)))
+    return block_out
+
+def reverse_bits(num, bit_size):
+    result = 0
+    for i in range(bit_size):
+        if num & (1 << i):
+            result |= 1 << (bit_size - 1 - i)
+    return result
+
+def pack_i32(data, e=1):
+    if e == 1:
+        return struct.pack('<i',  data)
+    else:
+        return struct.pack('>i',  data)
+
+def pack_f32(data, e=1):
+    if e == 1:
+        return struct.pack('<f',  data)
+    else:
+        return struct.pack('>f',  data)
+        
+# returns a block write number to output pin numbers
+def block_to_outpins(block_out=0, bits=0xF, offset=1):
+    for i in range(0, int(bits)):
+	    if (block_out & i) == i:
+		    print(f"output {i+offset} on")
+
+if __name__ == '__main__':
+
+    # step 1
+	drive = [ 1, 8 ]
+    o_block_1 = pin_list_on_to_output( drive )
+	drive = [ 9, 12 ]	
+    o_block_2 = pin_list_on_to_output( drive )	
+
+    time.sleep(100)
+	
+    # step 2
+	drive = [ 2, 5 ]
+    o_block_1 = pin_list_on_to_output( drive )
+    time.sleep(200)    
+    o_block_1 = pin_list_off_to_output( drive )
+	drive = [ 15, 10 ]	
+    o_block_2 = pin_list_on_to_output( drive )	
+    drive = [ 8 ]
+    o_block_2 = pin_list_off_to_output( drive )
+    o_block_2_rev = reverse_bits(o_block_2, 16)
