@@ -4,7 +4,7 @@
 #
 import stripe
 
-stripe.api_key = os.environ.get('STRIPE_API_KEY')                                       # "STRIPE_SECRET_KEY"
+stripe.api_key = os.environ.get('STRIPE_API_KEY')
 
 #creation
 def create_strike_cust(nme="your_name",em="has@noemail.com"):
@@ -143,3 +143,4 @@ def cre_acc():
 	
 	
 	
+
